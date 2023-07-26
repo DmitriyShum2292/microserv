@@ -1,0 +1,78 @@
+version: '3'
+
+services:
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.0.1
+    container_name: zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+
+  broker:
+    image: confluentinc/cp-kafka:7.0.1
+    container_name: broker
+    ports:
+      # To learn about configuring Kafka for access across networks see
+      # https://www.confluent.io/blog/kafka-client-cannot-connect-to-broker-on-aws-on-docker-etc/
+      - "9092:9092"
+    depends_on:
+      - zookeeper
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: 'zookeeper:2181'
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_INTERNAL:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://broker:9092,PLAINTEXT_INTERNAL://broker:29092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+
+#  rabbitmq:
+#    image: rabbitmq:3.9.11-alpine
+#    container_name: rabbitmq
+#    ports:
+#      - "5672:5672"
+#      - "15672:15672"
+
+  eureka:
+    container_name: eureka
+    build:
+      context: ./eureka-server/
+    ports:
+      - 8761:8761
+
+  prometheus:
+    container_name: prometheus
+    build:
+      context: ./prometheus/
+    ports:
+      - 8083:8083
+
+  fraud:
+    container_name: fraud
+    build:
+      context: ./fraud/
+    ports:
+      - 8081:8081
+    depends_on:
+      - eureka
+      - broker
+
+  customer:
+    container_name: customer
+    build:
+      context: ./customer/
+    ports:
+      - 8080:8080
+    depends_on:
+      - eureka
+
+  notification:
+    container_name: notification
+    build:
+      context: ./notification/
+    ports:
+      - 8087:8087
+    depends_on:
+      - broker
+      - fraud
+

@@ -1,0 +1,16 @@
+spring:
+  application:
+    name: FRAUD
+
+kafka:
+  bootStrapServer: broker:9092
+
+server:
+  port: 8081
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://eureka:8761/eureka
+      fetch-registry: true
+      register-with-eureka: true

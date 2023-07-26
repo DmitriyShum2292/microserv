@@ -1,0 +1,8 @@
+spring:
+  application:
+    name: notification_application
+kafka:
+  bootStrapServer: broker:9092
+
+server:
+  port: 8087
